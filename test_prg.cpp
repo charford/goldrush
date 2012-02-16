@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
 	// the current player is determined by the first command line argument(1-4)
 	char currentplayer;
 	sem_t* my_sem_ptr;
-	my_sem_ptr=sem_open("/casey_semaphore",O_RDWR|O_CREAT,600,1);
+	my_sem_ptr=sem_open("/casey_semaphore",O_RDWR|O_CREAT,0600,1);
 	cout << "my_sem_ptr = " << my_sem_ptr << endl;
 	sem_wait(my_sem_ptr);
 	cout << "i'm here" << endl;
