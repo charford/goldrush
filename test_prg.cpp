@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-
+#include <semaphore.h>
 using namespace std;
 
 // use this to store the rows/cols/gameboard
@@ -33,9 +33,17 @@ int main(int argc, char* argv[])
     bool foundGold = false;
 	bool newgame = false;
 	mapBoard* myptr;
-	int currentlocation,a;
+	int p1Location,a;
 	// the current player is determined by the first command line argument(1-4)
 	char currentplayer;
+	sem_t* my_sem_ptr;
+	my_sem_ptr=sem_open("/casey_semaphore",O_RDWR|O_CREAT,600,1);
+	cout << "my_sem_ptr = " << my_sem_ptr << endl;
+	sem_wait(my_sem_ptr);
+	cout << "i'm here" << endl;
+	//sleep(20);
+	sem_post(my_sem_ptr);
+
 	if(argc==1) {
 		cerr << "No player specified. Please specify the player number at command line." << endl;
 		exit(1);
@@ -59,7 +67,7 @@ int main(int argc, char* argv[])
 	}
 	
 	// setup the game	
-	currentlocation = setupGame(myptr,currentplayer,newgame);
+	p1Location = setupGame(myptr,currentplayer,newgame);
 
 	// start the game
 	Map goldMine(myptr->board,myptr->rows,myptr->cols);
@@ -70,38 +78,41 @@ int main(int argc, char* argv[])
     {   
         a=goldMine.getKey();
         if(a=='Q') { 
-			myptr->board[currentlocation]=0;
+			myptr->board[p1Location]=0;
 			break;
 		}
         if(a==ERR) goldMine.postNotice("No key pressed");
         //down
         if(a=='j' || a==258) {
-            currentlocation=checkForGold(currentlocation,myptr, 'j',goldMine,foundGold,currentplayer);
+            p1Location=checkForGold(p1Location,myptr, 'j',goldMine,foundGold,currentplayer);
 	    	goldMine.drawMap();
         }
         //up
         if(a=='k' || a==259) {
-        	currentlocation=checkForGold(currentlocation,myptr, 'k',goldMine,foundGold,currentplayer);
+        	p1Location=checkForGold(p1Location,myptr, 'k',goldMine,foundGold,currentplayer);
 	    	goldMine.drawMap();
         }
         //left
         if(a=='h' || a==260) {
-    		currentlocation=checkForGold(currentlocation,myptr, 'h',goldMine,foundGold,currentplayer);
+    		p1Location=checkForGold(p1Location,myptr, 'h',goldMine,foundGold,currentplayer);
             goldMine.drawMap();
         }
         //right
         if(a=='l' || a==261) {
-  			currentlocation=checkForGold(currentlocation,myptr, 'l',goldMine,foundGold,currentplayer);
+  			p1Location=checkForGold(p1Location,myptr, 'l',goldMine,foundGold,currentplayer);
             goldMine.drawMap();
         }
     }
-	if(newgame)
+	if(newgame) {
     	shm_unlink("/casey_goldmine");
+		sem_close(my_sem_ptr);
+		sem_unlink("/casey_semaphore");
+	}
 }
 
 int setupGame(mapBoard*& myptr, char currentplayer, bool& newgame) {
 
-	int currentlocation,i,numbergold,random,my_file_descriptor,myRows=0,myCols=0;
+	int p1Location,i,numbergold,random,my_file_descriptor,myRows=0,myCols=0;
 	char* mp;
  	const char* ptr;
     string allLines = "";
@@ -169,7 +180,7 @@ int setupGame(mapBoard*& myptr, char currentplayer, bool& newgame) {
         random = rand() % (myptr->rows*myptr->cols) + 1;
         if(myptr->board[random] != '*') {
             myptr->board[random]=currentplayer;
-            currentlocation = random;
+            p1Location = random;
             i++;
         }
     }
@@ -190,7 +201,7 @@ int setupGame(mapBoard*& myptr, char currentplayer, bool& newgame) {
 	    }
 	}
 	// if it makes it this far, success!
-	return currentlocation;
+	return p1Location;
 }
 
 int checkForGold(int location, mapBoard* myptr,char key, Map& goldMine,bool& foundGold,char currentplayer) {
