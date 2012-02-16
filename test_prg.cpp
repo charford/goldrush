@@ -39,10 +39,10 @@ int main(int argc, char* argv[])
 	sem_t* my_sem_ptr;
 	my_sem_ptr=sem_open("/casey_semaphore",O_RDWR|O_CREAT,0600,1);
 	cout << "my_sem_ptr = " << my_sem_ptr << endl;
-	sem_wait(my_sem_ptr);
-	cout << "i'm here" << endl;
+	//sem_wait(my_sem_ptr);
+	//cout << "i'm here" << endl;
 	//sleep(20);
-	sem_post(my_sem_ptr);
+	//sem_post(my_sem_ptr);
 
 	if(argc==1) {
 		cerr << "No player specified. Please specify the player number at command line." << endl;
@@ -66,13 +66,14 @@ int main(int argc, char* argv[])
 		}
 	}
 	
-	// setup the game	
-	p1Location = setupGame(myptr,currentplayer,newgame);
+	// setup the game
+    sem_wait(my_sem_ptr);
+	    p1Location = setupGame(myptr,currentplayer,newgame);
+    sem_post(my_sem_ptr);
 
 	// start the game
 	Map goldMine(myptr->board,myptr->rows,myptr->cols);
     goldMine.postNotice("Welcome to GoldRush!");
-
 
     while(true)
     {   
@@ -84,22 +85,30 @@ int main(int argc, char* argv[])
         if(a==ERR) goldMine.postNotice("No key pressed");
         //down
         if(a=='j' || a==258) {
-            p1Location=checkForGold(p1Location,myptr, 'j',goldMine,foundGold,currentplayer);
+            sem_wait(my_sem_ptr);
+                p1Location=checkForGold(p1Location,myptr, 'j',goldMine,foundGold,currentplayer);
+            sem_post(my_sem_ptr);
 	    	goldMine.drawMap();
         }
         //up
         if(a=='k' || a==259) {
-        	p1Location=checkForGold(p1Location,myptr, 'k',goldMine,foundGold,currentplayer);
+            sem_wait(my_sem_ptr);
+        	    p1Location=checkForGold(p1Location,myptr, 'k',goldMine,foundGold,currentplayer);
+            sem_post(my_sem_ptr);
 	    	goldMine.drawMap();
         }
         //left
         if(a=='h' || a==260) {
-    		p1Location=checkForGold(p1Location,myptr, 'h',goldMine,foundGold,currentplayer);
+            sem_wait(my_sem_ptr);
+    		    p1Location=checkForGold(p1Location,myptr, 'h',goldMine,foundGold,currentplayer);
+            sem_post(my_sem_ptr);
             goldMine.drawMap();
         }
         //right
         if(a=='l' || a==261) {
-  			p1Location=checkForGold(p1Location,myptr, 'l',goldMine,foundGold,currentplayer);
+            sem_wait(my_sem_ptr);
+  			    p1Location=checkForGold(p1Location,myptr, 'l',goldMine,foundGold,currentplayer);
+            sem_post(my_sem_ptr);
             goldMine.drawMap();
         }
     }
@@ -294,7 +303,7 @@ int checkForGold(int location, mapBoard* myptr,char key, Map& goldMine,bool& fou
                     goldMine.postNotice("You found gold!");
                     foundGold=true;
 				}			
-				if(myptr->board[(x+1)+myptr->cols*y] & G_GOLD) {
+				if(myptr->board[(x+1)+myptr->cols*y] & G_FOOL) {
                     goldMine.postNotice("To bad, that was some fools gold! Try again!");
 				}			
 
