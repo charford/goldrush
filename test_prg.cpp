@@ -14,95 +14,57 @@
 
 using namespace std;
 
+// use this to store the rows/cols/gameboard
 struct mapBoard {
     int rows;
     int cols;
     char board[0];
 };
 
+// sets up the shared memory(if not already created), and returns true if 
+// everything goes successful
+int setupGame(mapBoard*& myptr, char currentplayer);
+
+// will be used to check locations on the map, and returns the new player location
 int checkForGold(int location, mapBoard* myptr, char key, Map& goldMine, bool& foundGold);
 
-int main()
+int main(int argc, char* argv[])
 {
-    int my_file_descriptor;
-    my_file_descriptor=shm_open("/casey_goldmine", O_RDWR|O_CREAT,0600);
-
-    ifstream inf("mymap.txt");
-
-    if(!inf)
-    {
-        cerr << "Problem opening file!" << endl;
-        exit(1);
-    }
- 
-    int random;
-    int myRows=0,myCols=0;
-    int p1Location;
     bool foundGold = false;
-
-    srand(time(NULL));
-    string allLines = "";
-    string oneLine;
-
-    int numbergold;
-    //Remember, the first line is not part
-    //of the map.  Therefore:
-    getline(inf,oneLine); 
-    numbergold = atoi(oneLine.c_str());
-    cout << "first line = " << oneLine << endl;
-    while(!getline(inf,oneLine).eof())
-    {
-        allLines+=oneLine;
-        myCols=oneLine.size();
-        myRows++;
-        cout << oneLine << endl;
-    }
-
-    ftruncate(my_file_descriptor,sizeof(mapBoard)+myRows*myCols);
-    lseek(my_file_descriptor,sizeof(mapBoard), SEEK_SET);
-    write(my_file_descriptor, allLines.c_str(), myRows*myCols);
-    mapBoard* myptr=(mapBoard*)mmap(0,sizeof(mapBoard)+myRows*myCols,PROT_READ|PROT_WRITE,MAP_SHARED,my_file_descriptor,0);
-    myptr->rows = myRows;
-    myptr->cols = myCols;
-   
-    char* mp=myptr->board;
-
-    //drop the gold
-    while(numbergold>0) {
-        random = rand() % (myptr->rows*myptr->cols) + 1;
-        if(myptr->board[random] == ' ') {
-            if(numbergold==1) myptr->board[random]='G';
-            else myptr->board[random]='F';
-            numbergold--;
-        }
-    }
-
-    int i=0; 
-    //drop the players
-    while(i<1) {
-        random = rand() % (myptr->rows*myptr->cols) + 1;
-        if(myptr->board[random] == ' ') {
-            myptr->board[random]=G_PLR0;
-            p1Location = random;
-            i++;
-        }
-    }
-    const char* ptr = myptr->board;
-    while(*ptr!='\0')
-    {
-        if(*ptr==' ')      *mp=0;
-        else if(*ptr=='*') *mp=G_WALL; //A wall
-        else if(*ptr=='1') *mp=G_PLR0; //The first player
-        else if(*ptr=='2') *mp=G_PLR1; //The second player
-        else if(*ptr=='G') *mp=G_GOLD; //Real gold!
-        else if(*ptr=='F') *mp=G_FOOL; //Fool's gold
-        ++ptr;
-        ++mp;
-    }
-
-    Map goldMine(myptr->board,myptr->rows,myptr->cols);
+	mapBoard* myptr;
+	int p1Location;
+	// the current player is determined by the first command line argument(1-4)
+	char currentplayer;
+	if(argc==1) {
+		cerr << "No player specified. Please specify the player number at command line." << endl;
+		exit(1);
+	}
+	else {
+		//set the player for this process
+		switch(atoi(argv[1])) {
+			case 1:
+				currentplayer = G_PLR0;
+				break;
+			case 2:
+				currentplayer = G_PLR1;
+				break;
+			case 3:
+				currentplayer = G_PLR2;
+				break;
+			case 4:
+				currentplayer = G_PLR3;
+				break;
+		}
+	}
+	
+	cout << "before" << endl;
+	p1Location = setupGame(myptr,currentplayer);
+    cout << myptr->rows << endl;
+	//cout << "setting up goldmine, " << myptr->board[4] << endl;
+	Map goldMine(myptr->board,myptr->rows,myptr->cols);
+	cout << "goldmine setup done" << endl;
     int a=0;
-    cout << "p1 x,y = " << p1Location % myCols << ", " << p1Location / myCols << endl;
+    cout << "p1 x,y = " << p1Location % myptr->cols << ", " << p1Location / myptr->cols << endl;
     goldMine.postNotice("This is a notice.");
     while(true)
     {   
@@ -131,6 +93,88 @@ int main()
         }
     }
     shm_unlink("/casey_goldmine");
+}
+
+int setupGame(mapBoard*& myptr, char currentplayer) {
+	cout << "i'm here" << endl;
+	int p1Location;
+    int random;
+    int myRows=0,myCols=0;
+	// open the shared memory
+    int my_file_descriptor;
+    my_file_descriptor=shm_open("/casey_goldmine", O_RDWR|O_CREAT,0600);
+
+    ifstream inf("mymap.txt");
+
+    if(!inf)
+    {
+        cerr << "Problem opening file!" << endl;
+        exit(1);
+    }
+ 
+    srand(time(NULL));
+    string allLines = "";
+    string oneLine;
+
+    int numbergold;
+    //Remember, the first line is not part
+    //of the map.  Therefore:
+    getline(inf,oneLine); 
+    numbergold = atoi(oneLine.c_str());
+    cout << "first line = " << oneLine << endl;
+    while(!getline(inf,oneLine).eof())
+    {
+        allLines+=oneLine;
+        myCols=oneLine.size();
+        myRows++;
+        cout << oneLine << endl;
+    }
+
+	cout << "about to truncate" << endl;
+    ftruncate(my_file_descriptor,sizeof(mapBoard)+myRows*myCols);
+    lseek(my_file_descriptor,sizeof(mapBoard), SEEK_SET);
+    write(my_file_descriptor, allLines.c_str(), myRows*myCols);
+    myptr=(mapBoard*)mmap(0,sizeof(mapBoard)+myRows*myCols,PROT_READ|PROT_WRITE,MAP_SHARED,my_file_descriptor,0);
+    myptr->rows = myRows;
+    myptr->cols = myCols;
+   
+    char* mp=myptr->board;
+
+    //drop the gold
+    while(numbergold>0) {
+        random = rand() % (myptr->rows*myptr->cols) + 1;
+        if(myptr->board[random] == ' ') {
+            if(numbergold==1) myptr->board[random]='G';
+            else myptr->board[random]='F';
+            numbergold--;
+        }
+    }
+	cout << "gold has been dropped" << endl;
+    int i=0; 
+    //drop the players
+    while(i<1) {
+        random = rand() % (myptr->rows*myptr->cols) + 1;
+        if(myptr->board[random] == ' ') {
+            myptr->board[random]=currentplayer;
+            p1Location = random;
+            i++;
+        }
+    }
+    const char* ptr = myptr->board;
+    while(*ptr!='\0')
+    {
+        if(*ptr==' ')      *mp=0;
+        else if(*ptr=='*') *mp=G_WALL; //A wall
+        else if(*ptr=='1') *mp=G_PLR0; //The first player
+        else if(*ptr=='2') *mp=G_PLR1; //The second player
+        else if(*ptr=='G') *mp=G_GOLD; //Real gold!
+        else if(*ptr=='F') *mp=G_FOOL; //Fool's gold
+        ++ptr;
+        ++mp;
+    }
+	cout << "game setup done" << endl;
+	// if it makes it this far, success!
+	return p1Location;
 }
 
 int checkForGold(int location, mapBoard* myptr,char key, Map& goldMine,bool& foundGold) {
@@ -165,7 +209,7 @@ int checkForGold(int location, mapBoard* myptr,char key, Map& goldMine,bool& fou
 
 		//move down
 		case 'j':
-            if((y+1) >= myptr->rows) {
+			if((y+1) >= myptr->rows) {
                 if(foundGold) goldMine.postNotice("You win!");
                 return location;
             }
