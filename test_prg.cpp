@@ -20,7 +20,7 @@ struct mapBoard {
     char board[0];
 };
 
-int checkForGold(int location, mapBoard* myptr, char key);
+int checkForGold(int location, mapBoard* myptr, char key, Map& goldMine, bool& foundGold);
 
 int main()
 {
@@ -38,6 +38,7 @@ int main()
     int random;
     int myRows=0,myCols=0;
     int p1Location;
+    bool foundGold = false;
 
     srand(time(NULL));
     string allLines = "";
@@ -56,9 +57,9 @@ int main()
         myRows++;
         cout << oneLine << endl;
     }
-    
 
-    ftruncate(my_file_descriptor,myRows*myCols);
+    ftruncate(my_file_descriptor,sizeof(mapBoard)+myRows*myCols);
+    lseek(my_file_descriptor,sizeof(mapBoard), SEEK_SET);
     write(my_file_descriptor, allLines.c_str(), myRows*myCols);
     mapBoard* myptr=(mapBoard*)mmap(0,sizeof(mapBoard)+myRows*myCols,PROT_READ|PROT_WRITE,MAP_SHARED,my_file_descriptor,0);
     myptr->rows = myRows;
@@ -110,29 +111,29 @@ int main()
         if(a==ERR) goldMine.postNotice("No key pressed");
         //down
         if(a=='j' || a==258) {
-            p1Location=checkForGold(p1Location,myptr, 'j');
+            p1Location=checkForGold(p1Location,myptr, 'j',goldMine,foundGold);
 	    	goldMine.drawMap();
         }
         //up
         if(a=='k' || a==259) {
-        	p1Location=checkForGold(p1Location,myptr, 'k');
+        	p1Location=checkForGold(p1Location,myptr, 'k',goldMine,foundGold);
 	    	goldMine.drawMap();
         }
         //left
         if(a=='h' || a==260) {
-    		p1Location=checkForGold(p1Location,myptr, 'h');
+    		p1Location=checkForGold(p1Location,myptr, 'h',goldMine,foundGold);
             goldMine.drawMap();
         }
         //right
         if(a=='l' || a==261) {
-  			p1Location=checkForGold(p1Location,myptr, 'l');
+  			p1Location=checkForGold(p1Location,myptr, 'l',goldMine,foundGold);
             goldMine.drawMap();
         }
     }
     shm_unlink("/casey_goldmine");
 }
 
-int checkForGold(int location, mapBoard* myptr,char key ) {
+int checkForGold(int location, mapBoard* myptr,char key, Map& goldMine,bool& foundGold) {
     int x,y;
     //get current location
     x = location % myptr->cols;
@@ -141,74 +142,94 @@ int checkForGold(int location, mapBoard* myptr,char key ) {
 	switch(key) {
 		//move up
 		case 'k':
+            if((y-1) < 0) {
+                if(foundGold) goldMine.postNotice("You win!");
+                return location;
+            }
 			if(myptr->board[x+myptr->cols*(y-1)] & G_WALL) {
 				return location;
 			}
 			else {
 				if(myptr->board[x+myptr->cols*(y-1)] & G_GOLD) {
-					cout << "found gold" << endl;
+                    goldMine.postNotice("You found gold!");
+                    foundGold=true;
 				}			
 				if(myptr->board[x+myptr->cols*(y-1)] & G_FOOL) {
-					cout << "found fools gold" << endl;
+                    goldMine.postNotice("To bad, that was some fools gold! Try again!");
 				}			
 				myptr->board[location]=0;
-				myptr->board[x+myptr->cols*(y-1)]=G_PLR1;
+				myptr->board[x+myptr->cols*(y-1)]=G_PLR0;
 				return x+myptr->cols*(y-1);
 			}
 			break;
 
 		//move down
 		case 'j':
+            if((y+1) >= myptr->rows) {
+                if(foundGold) goldMine.postNotice("You win!");
+                return location;
+            }
 			if(myptr->board[x+myptr->cols*(y+1)] & G_WALL) {
 				return location;
 			}
 			else {
 				if(myptr->board[x+myptr->cols*(y+1)] & G_GOLD) {
-					cout << "found gold" << endl;
+                    goldMine.postNotice("You found gold!");
+                    foundGold=true;
 				}			
 				if(myptr->board[x+myptr->cols*(y+1)] & G_FOOL) {
-					cout << "found fools gold" << endl;
+                    goldMine.postNotice("To bad, that was some fools gold! Try again!");
 				}			
 				myptr->board[location]=0;
-				myptr->board[x+myptr->cols*(y+1)]=G_PLR1;
+				myptr->board[x+myptr->cols*(y+1)]=G_PLR0;
 				return x+myptr->cols*(y+1);
 			}
 			break;
 
 		//move left
 		case 'h':
+            if((x-1) < 0) {
+                if(foundGold) goldMine.postNotice("You win!");
+                return location;
+            }
 			if(myptr->board[(x-1)+myptr->cols*y] & G_WALL) {
 				return location;
 			}
 			else {
 				if(myptr->board[(x-1)+myptr->cols*y] & G_GOLD) {
-					cout << "found gold" << endl;
+                    goldMine.postNotice("You found gold!");
+                    foundGold=true;
 				}			
 				if(myptr->board[(x-1)+myptr->cols*y] & G_FOOL) {
-					cout << "found fools gold" << endl;
+                    goldMine.postNotice("To bad, that was some fools gold! Try again!");
 				}			
 				myptr->board[location]=0;
-				myptr->board[(x-1)+myptr->cols*y]=G_PLR1;
+				myptr->board[(x-1)+myptr->cols*y]=G_PLR0;
 				return (x-1)+myptr->cols*y;
 			}
 			break;
 		
 		//move right
 		case 'l':
+            if((x+1) >= myptr->cols) {
+                if(foundGold) goldMine.postNotice("You win!");
+                return location;
+            }
 			if(myptr->board[(x+1)+myptr->cols*y] & G_WALL) {
 				return location;
 			}
 			else {
 				if(myptr->board[(x+1)+myptr->cols*y] & G_GOLD) {
-					cout << "found gold" << endl;
+                    goldMine.postNotice("You found gold!");
+                    foundGold=true;
 				}			
 				if(myptr->board[(x+1)+myptr->cols*y] & G_GOLD) {
-					cout << "found fools gold" << endl;
+                    goldMine.postNotice("To bad, that was some fools gold! Try again!");
 				}			
 
 				//at this point all checks should be done	
 				myptr->board[location]=0;
-				myptr->board[(x+1)+myptr->cols*y]=G_PLR1;
+				myptr->board[(x+1)+myptr->cols*y]=G_PLR0;
 				return (x+1)+myptr->cols*y;
 			}
 			break;
