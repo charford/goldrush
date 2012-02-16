@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
     bool foundGold = false;
 	bool newgame = false;
 	mapBoard* myptr;
-	int p1Location,a;
+	int currentlocation,a;
 	// the current player is determined by the first command line argument(1-4)
 	char currentplayer;
 	if(argc==1) {
@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
 	}
 	
 	// setup the game	
-	p1Location = setupGame(myptr,currentplayer,newgame);
+	currentlocation = setupGame(myptr,currentplayer,newgame);
 
 	// start the game
 	Map goldMine(myptr->board,myptr->rows,myptr->cols);
@@ -70,28 +70,28 @@ int main(int argc, char* argv[])
     {   
         a=goldMine.getKey();
         if(a=='Q') { 
-			myptr->board[p1Location]=0;
+			myptr->board[currentlocation]=0;
 			break;
 		}
         if(a==ERR) goldMine.postNotice("No key pressed");
         //down
         if(a=='j' || a==258) {
-            p1Location=checkForGold(p1Location,myptr, 'j',goldMine,foundGold,currentplayer);
+            currentlocation=checkForGold(currentlocation,myptr, 'j',goldMine,foundGold,currentplayer);
 	    	goldMine.drawMap();
         }
         //up
         if(a=='k' || a==259) {
-        	p1Location=checkForGold(p1Location,myptr, 'k',goldMine,foundGold,currentplayer);
+        	currentlocation=checkForGold(currentlocation,myptr, 'k',goldMine,foundGold,currentplayer);
 	    	goldMine.drawMap();
         }
         //left
         if(a=='h' || a==260) {
-    		p1Location=checkForGold(p1Location,myptr, 'h',goldMine,foundGold,currentplayer);
+    		currentlocation=checkForGold(currentlocation,myptr, 'h',goldMine,foundGold,currentplayer);
             goldMine.drawMap();
         }
         //right
         if(a=='l' || a==261) {
-  			p1Location=checkForGold(p1Location,myptr, 'l',goldMine,foundGold,currentplayer);
+  			currentlocation=checkForGold(currentlocation,myptr, 'l',goldMine,foundGold,currentplayer);
             goldMine.drawMap();
         }
     }
@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
 
 int setupGame(mapBoard*& myptr, char currentplayer, bool& newgame) {
 
-	int p1Location,i,numbergold,random,my_file_descriptor,myRows=0,myCols=0;
+	int currentlocation,i,numbergold,random,my_file_descriptor,myRows=0,myCols=0;
 	char* mp;
  	const char* ptr;
     string allLines = "";
@@ -169,7 +169,7 @@ int setupGame(mapBoard*& myptr, char currentplayer, bool& newgame) {
         random = rand() % (myptr->rows*myptr->cols) + 1;
         if(myptr->board[random] != '*') {
             myptr->board[random]=currentplayer;
-            p1Location = random;
+            currentlocation = random;
             i++;
         }
     }
@@ -190,7 +190,7 @@ int setupGame(mapBoard*& myptr, char currentplayer, bool& newgame) {
 	    }
 	}
 	// if it makes it this far, success!
-	return p1Location;
+	return currentlocation;
 }
 
 int checkForGold(int location, mapBoard* myptr,char key, Map& goldMine,bool& foundGold,char currentplayer) {
