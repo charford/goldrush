@@ -152,7 +152,6 @@ int setupGame(mapBoard*& myptr, char currentplayer, bool& newgame) {
         allLines+=oneLine;
         myCols=oneLine.size();
         myRows++;
-        cout << oneLine << endl;
     }
 
 	if(newgame) {
