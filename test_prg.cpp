@@ -26,7 +26,7 @@ struct mapBoard {
 int setupGame(mapBoard*& myptr, char currentplayer, bool& newgame);
 
 // will be used to check locations on the map, and returns the new player location
-int checkForGold(int location, mapBoard* myptr, char key, Map& goldMine, bool& foundGold, char currentplayer);
+int checkForGold(int& numberfools_found, int location, mapBoard* myptr, char key, Map& goldMine, bool& foundGold, char currentplayer);
 
 int main(int argc, char* argv[])
 {
@@ -36,13 +36,9 @@ int main(int argc, char* argv[])
 	int p1Location,a;
 	// the current player is determined by the first command line argument(1-4)
 	char currentplayer;
+	int numberfools_found = 0;
 	sem_t* my_sem_ptr;
 	my_sem_ptr=sem_open("/casey_semaphore",O_RDWR|O_CREAT,0600,1);
-	cout << "my_sem_ptr = " << my_sem_ptr << endl;
-	//sem_wait(my_sem_ptr);
-	//cout << "i'm here" << endl;
-	//sleep(20);
-	//sem_post(my_sem_ptr);
 
 	if(argc==1) {
 		cerr << "No player specified. Please specify the player number at command line." << endl;
@@ -68,7 +64,7 @@ int main(int argc, char* argv[])
 	
 	// setup the game
     sem_wait(my_sem_ptr);
-	    p1Location = setupGame(myptr,currentplayer,newgame);
+	p1Location = setupGame(myptr,currentplayer,newgame);
     sem_post(my_sem_ptr);
 
 	// start the game
@@ -86,28 +82,28 @@ int main(int argc, char* argv[])
         //down
         if(a=='j' || a==258) {
             sem_wait(my_sem_ptr);
-                p1Location=checkForGold(p1Location,myptr, 'j',goldMine,foundGold,currentplayer);
+            p1Location=checkForGold(numberfools_found,p1Location,myptr, 'j',goldMine,foundGold,currentplayer);
             sem_post(my_sem_ptr);
 	    	goldMine.drawMap();
         }
         //up
         if(a=='k' || a==259) {
             sem_wait(my_sem_ptr);
-        	    p1Location=checkForGold(p1Location,myptr, 'k',goldMine,foundGold,currentplayer);
+        	p1Location=checkForGold(numberfools_found,p1Location,myptr, 'k',goldMine,foundGold,currentplayer);
             sem_post(my_sem_ptr);
 	    	goldMine.drawMap();
         }
         //left
         if(a=='h' || a==260) {
             sem_wait(my_sem_ptr);
-    		    p1Location=checkForGold(p1Location,myptr, 'h',goldMine,foundGold,currentplayer);
+    		p1Location=checkForGold(numberfools_found,p1Location,myptr, 'h',goldMine,foundGold,currentplayer);
             sem_post(my_sem_ptr);
             goldMine.drawMap();
         }
         //right
         if(a=='l' || a==261) {
             sem_wait(my_sem_ptr);
-  			    p1Location=checkForGold(p1Location,myptr, 'l',goldMine,foundGold,currentplayer);
+  			p1Location=checkForGold(numberfools_found,p1Location,myptr, 'l',goldMine,foundGold,currentplayer);
             sem_post(my_sem_ptr);
             goldMine.drawMap();
         }
@@ -213,7 +209,7 @@ int setupGame(mapBoard*& myptr, char currentplayer, bool& newgame) {
 	return p1Location;
 }
 
-int checkForGold(int location, mapBoard* myptr,char key, Map& goldMine,bool& foundGold,char currentplayer) {
+int checkForGold(int& numberfools_found,int location, mapBoard* myptr,char key, Map& goldMine,bool& foundGold,char currentplayer) {
     int x,y;
     //get current location
     x = location % myptr->cols;
@@ -236,7 +232,9 @@ int checkForGold(int location, mapBoard* myptr,char key, Map& goldMine,bool& fou
 				}			
 				if(myptr->board[x+myptr->cols*(y-1)] & G_FOOL) {
                     goldMine.postNotice("To bad, that was some fools gold! Try again!");
+					numberfools_found++;
 				}			
+				//at this point all checks should be done	
 				myptr->board[location]=0;
 				myptr->board[x+myptr->cols*(y-1)]=currentplayer;
 				return x+myptr->cols*(y-1);
@@ -259,7 +257,9 @@ int checkForGold(int location, mapBoard* myptr,char key, Map& goldMine,bool& fou
 				}			
 				if(myptr->board[x+myptr->cols*(y+1)] & G_FOOL) {
                     goldMine.postNotice("To bad, that was some fools gold! Try again!");
+					numberfools_found++;
 				}			
+				//at this point all checks should be done	
 				myptr->board[location]=0;
 				myptr->board[x+myptr->cols*(y+1)]=currentplayer;
 				return x+myptr->cols*(y+1);
@@ -282,7 +282,9 @@ int checkForGold(int location, mapBoard* myptr,char key, Map& goldMine,bool& fou
 				}			
 				if(myptr->board[(x-1)+myptr->cols*y] & G_FOOL) {
                     goldMine.postNotice("To bad, that was some fools gold! Try again!");
+					numberfools_found++;
 				}			
+				//at this point all checks should be done	
 				myptr->board[location]=0;
 				myptr->board[(x-1)+myptr->cols*y]=currentplayer;
 				return (x-1)+myptr->cols*y;
@@ -305,6 +307,7 @@ int checkForGold(int location, mapBoard* myptr,char key, Map& goldMine,bool& fou
 				}			
 				if(myptr->board[(x+1)+myptr->cols*y] & G_FOOL) {
                     goldMine.postNotice("To bad, that was some fools gold! Try again!");
+					numberfools_found++;
 				}			
 
 				//at this point all checks should be done	
