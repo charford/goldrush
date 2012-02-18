@@ -1,0 +1,45 @@
+Gold Chase!
+Implementation by Casey Harford
+CSCI340 - 02/17/2011
+
+A WORD FROM THE CREATOR
+-------------------------------------------------------
+Yeeeeehawwwww, GOLD CHASE!
+
+Gather around folks!
+
+	- Todd Gibson, 2/6/2012
+
+README
+-------------------------------------------------------
+Gold Chase is a game that involves multiple players,
+all utilizing the same shared memory, which is drawn
+out as a map. The goal of the game is to get the real
+gold, before everyone else. Once you pick the real 
+gold up, you take it to any open exit on the map. 
+
+Watch out for the fools gold!
+
+INSTRUCTIONS
+-------------------------------------------------------
+Use vim controls to control you character,
+
+	up		k
+	down 	j
+	left	h
+	right	l
+
+To start the game, type:
+
+	./test_prg <player_number>
+
+	Example:
+
+	./test_prg 1
+
+The map file must be named mymap.txt.
+
+Currently, there is no check to see if a player
+has already been selected. It is assumed that the
+player specified at the command line, does not
+already exist in the game.
