@@ -140,6 +140,7 @@ int setupGame(mapBoard*& myptr, char currentplayer, bool& newgame) {
         exit(1);
     }
  
+	//using this to generate random numbers
     srand(time(NULL));
 
 	//get the number of gold to drop(including fools gold)
@@ -176,20 +177,7 @@ int setupGame(mapBoard*& myptr, char currentplayer, bool& newgame) {
 	            numbergold--;
 	        }
 	    }
-	}
 
-    i=0; 
-    //drop the player randomly
-    while(i<1) {
-        random = rand() % (myptr->rows*myptr->cols) + 1;
-        if(myptr->board[random] != '*') {
-            myptr->board[random]=currentplayer;
-            p1Location = random;
-            i++;
-        }
-    }
-
-	if(newgame) {
 	    mp=myptr->board;
 	    ptr = myptr->board;
 	    while(*ptr!='\0')
@@ -204,6 +192,17 @@ int setupGame(mapBoard*& myptr, char currentplayer, bool& newgame) {
 	        ++mp;
 	    }
 	}
+
+    i=0; 
+    //drop the player randomly
+    while(i<1) {
+        random = rand() % (myptr->rows*myptr->cols) + 1;
+        if(myptr->board[random] == 0) {
+            myptr->board[random]=currentplayer;
+            p1Location = random;
+            i++;
+        }
+    }
 	// if it makes it this far, success!
 	return p1Location;
 }
@@ -221,6 +220,7 @@ int checkForGold(int& numberfools_found,int location, mapBoard* myptr,char key, 
                 if(foundGold) goldMine.postNotice("You win!");
                 return location;
             }
+			// check for walls and other players
 			if(myptr->board[x+myptr->cols*(y-1)] & G_WALL 
 				|| myptr->board[x+myptr->cols*(y-1)] & G_PLR0 
 				|| myptr->board[x+myptr->cols*(y-1)] & G_PLR1 
@@ -251,6 +251,7 @@ int checkForGold(int& numberfools_found,int location, mapBoard* myptr,char key, 
                 if(foundGold) goldMine.postNotice("You win!");
                 return location;
             }
+			// check for walls and other players
 			if(myptr->board[x+myptr->cols*(y+1)] & G_WALL
 				|| myptr->board[x+myptr->cols*(y+1)] & G_PLR0 
 				|| myptr->board[x+myptr->cols*(y+1)] & G_PLR1 
@@ -281,6 +282,7 @@ int checkForGold(int& numberfools_found,int location, mapBoard* myptr,char key, 
                 if(foundGold) goldMine.postNotice("You win!");
                 return location;
             }
+			// check for walls and other players
 			if(myptr->board[(x-1)+myptr->cols*y] & G_WALL
 				|| myptr->board[(x-1)+myptr->cols*y] & G_PLR0
 				|| myptr->board[(x-1)+myptr->cols*y] & G_PLR1
@@ -311,6 +313,7 @@ int checkForGold(int& numberfools_found,int location, mapBoard* myptr,char key, 
                 if(foundGold) goldMine.postNotice("You win!");
                 return location;
             }
+			// check for walls and other players
 			if(myptr->board[(x+1)+myptr->cols*y] & G_WALL
 				|| myptr->board[(x+1)+myptr->cols*y] & G_PLR0
 				|| myptr->board[(x+1)+myptr->cols*y] & G_PLR1
