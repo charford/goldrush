@@ -221,7 +221,12 @@ int checkForGold(int& numberfools_found,int location, mapBoard* myptr,char key, 
                 if(foundGold) goldMine.postNotice("You win!");
                 return location;
             }
-			if(myptr->board[x+myptr->cols*(y-1)] & G_WALL) {
+			if(myptr->board[x+myptr->cols*(y-1)] & G_WALL 
+				|| myptr->board[x+myptr->cols*(y-1)] & G_PLR0 
+				|| myptr->board[x+myptr->cols*(y-1)] & G_PLR1 
+				|| myptr->board[x+myptr->cols*(y-1)] & G_PLR2 
+				|| myptr->board[x+myptr->cols*(y-1)] & G_PLR3 
+				|| myptr->board[x+myptr->cols*(y-1)] & G_PLR4) {
 				return location;
 			}
 			else {
@@ -246,7 +251,12 @@ int checkForGold(int& numberfools_found,int location, mapBoard* myptr,char key, 
                 if(foundGold) goldMine.postNotice("You win!");
                 return location;
             }
-			if(myptr->board[x+myptr->cols*(y+1)] & G_WALL) {
+			if(myptr->board[x+myptr->cols*(y+1)] & G_WALL
+				|| myptr->board[x+myptr->cols*(y+1)] & G_PLR0 
+				|| myptr->board[x+myptr->cols*(y+1)] & G_PLR1 
+				|| myptr->board[x+myptr->cols*(y+1)] & G_PLR2 
+				|| myptr->board[x+myptr->cols*(y+1)] & G_PLR3 
+				|| myptr->board[x+myptr->cols*(y+1)] & G_PLR4) {
 				return location;
 			}
 			else {
@@ -271,7 +281,12 @@ int checkForGold(int& numberfools_found,int location, mapBoard* myptr,char key, 
                 if(foundGold) goldMine.postNotice("You win!");
                 return location;
             }
-			if(myptr->board[(x-1)+myptr->cols*y] & G_WALL) {
+			if(myptr->board[(x-1)+myptr->cols*y] & G_WALL
+				|| myptr->board[(x-1)+myptr->cols*y] & G_PLR0
+				|| myptr->board[(x-1)+myptr->cols*y] & G_PLR1
+				|| myptr->board[(x-1)+myptr->cols*y] & G_PLR2
+				|| myptr->board[(x-1)+myptr->cols*y] & G_PLR3
+				|| myptr->board[(x-1)+myptr->cols*y] & G_PLR4) {
 				return location;
 			}
 			else {
@@ -296,7 +311,12 @@ int checkForGold(int& numberfools_found,int location, mapBoard* myptr,char key, 
                 if(foundGold) goldMine.postNotice("You win!");
                 return location;
             }
-			if(myptr->board[(x+1)+myptr->cols*y] & G_WALL) {
+			if(myptr->board[(x+1)+myptr->cols*y] & G_WALL
+				|| myptr->board[(x+1)+myptr->cols*y] & G_PLR0
+				|| myptr->board[(x+1)+myptr->cols*y] & G_PLR1
+				|| myptr->board[(x+1)+myptr->cols*y] & G_PLR2
+				|| myptr->board[(x+1)+myptr->cols*y] & G_PLR3
+				|| myptr->board[(x+1)+myptr->cols*y] & G_PLR4) {
 				return location;
 			}
 			else {
