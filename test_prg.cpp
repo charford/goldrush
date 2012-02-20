@@ -1,3 +1,7 @@
+// GOLD CHASE
+// IMPLEMENTATION BY CASEY HARFORD
+// CSCI340
+// 02/17/2012
 #include <map>
 #include "goldchase.h"
 #include "Map.h"
